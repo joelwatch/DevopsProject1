@@ -80,7 +80,7 @@ resource "aws_instance" "my_ec2_instance1" {
   connection {
     type        = "ssh"
     user        = "ec2-user"
-    private_key = file("./my_key.pem")
+    private_key = file("./my_key.pem")  # importer la cle dans le meme dossier que les fichiers terraform
     host        = self.public_ip
   }
   # STEP3: USING REMOTE-EXEC PROVISIONER TO INSTALL TOOLS
