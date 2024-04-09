@@ -86,7 +86,7 @@ resource "aws_instance" "my_ec2_instance1" {
     # ESTABLISHING SSH CONNECTION WITH EC2
     connection {
       type        = "ssh"
-      private_key = file("./ohiokp.pem")
+      private_key = file("/Users/pro/Downloads/ohiokp.pem")
       user        = "ec2-user"
       host        = self.public_ip
     }
