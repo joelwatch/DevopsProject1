@@ -2,7 +2,7 @@
 # STEP1: CREATING A SECURITY GROUP FOR DOCKER-K8S
 # Description: K8s requires ports 22, 80, 443, 6443, 8001, 10250, 30000-32767
 resource "aws_security_group" "my_security_group2" {
-  name        = "my-security-group4"
+  name        = "my-security-group2"
   description = "Allow K8s ports"
 
   # SSH Inbound Rules
@@ -78,7 +78,7 @@ resource "aws_instance" "my_ec2_instance2" {
   ami                    = "ami-0cf10cdf9fcd62d37"
   instance_type          = "t2.medium" # K8s requires min 2CPU & 4G RAM
   vpc_security_group_ids = [aws_security_group.my_security_group2.id]
-  key_name               = "ohiokp" # paste your key-name here, do not use extension '.pem'
+  key_name               = "my_key" # paste your key-name here, do not use extension '.pem'
 
   # Consider EBS volume 30GB
   root_block_device {
@@ -95,7 +95,7 @@ resource "aws_instance" "my_ec2_instance2" {
     # ESTABLISHING SSH CONNECTION WITH EC2
     connection {
       type        = "ssh"
-      private_key = file("/Users/pro/Downloads/ohiokp.pem") # replace with your key-name 
+      private_key = file("./my_key.pem") # replace with your key-name 
       user        = "ec2-user"
       host        = self.public_ip
     }
