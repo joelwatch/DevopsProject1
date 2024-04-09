@@ -3,7 +3,7 @@
 # Description: Allow SSH, HTTP, HTTPS, 8080
 
 resource "aws_security_group" "my_security_group1" {
-  name = "my_security_group1"
+  name        = "my_security_group1"
   description = "Allow SSH, HTTP, HTTPS, 8080 for Jenkins & Maven"
 
   # SSH Inboud Rules
@@ -56,16 +56,11 @@ resource "aws_security_group" "my_security_group1" {
 #      ii. Copy it in the same directory as your terraform code
 
 resource "aws_instance" "my_ec2_instance1" {
-  ami                    = "ami-0cf10cdf9fcd62d37"
+  ami                    = "ami-00cda30cf72311684"
   instance_type          = "t2.medium"
   vpc_security_group_ids = [aws_security_group.my_security_group1.id]
   key_name               = "my_key" # paste your key-name here, do not use extension '.pem'
 
-  # Consider EBS volume 30GB
-  root_block_device {
-    volume_size = 30  # Volume size 30 GB
-    volume_type = "gp2"  # General Purpose SSD
-  }
 
   tags = {
     Name = "MASTER-SERVER"
@@ -81,22 +76,21 @@ resource "aws_instance" "my_ec2_instance1" {
     sudo yum install java-1.8.0-devel -y
   EOF
 
+  # ESTABLISHING SSH CONNECTION WITH EC2
+  connection {
+    type        = "ssh"
+    user        = "ec2-user"
+    private_key = file("./my_key.pem")
+    host        = self.public_ip
+  }
   # STEP3: USING REMOTE-EXEC PROVISIONER TO INSTALL TOOLS
   provisioner "remote-exec" {
-    # ESTABLISHING SSH CONNECTION WITH EC2
-    connection {
-      type        = "ssh"
-      private_key = file("./my_key.pem")
-      user        = "ec2-user"
-      host        = self.public_ip
-    }
-  
     inline = [
       # wait for 200 sec before EC@ initialization
       "sleep 200",
       # Install Git
       "sudo yum install git -y",
-       
+
       # Install Jenkins 
       # REF: https://www.jenkins.io/doc/tutorials/tutorial-for-installing-jenkins-on-AWS/
       "sudo wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo",
@@ -104,7 +98,7 @@ resource "aws_instance" "my_ec2_instance1" {
       "sudo yum install java-17-amazon-corretto -y",
       "sudo yum install jenkins -y",
       "sudo systemctl enable jenkins",
-      "sudo systemctl start jenkins",   
+      "sudo systemctl start jenkins",
 
       # Install Docker
       # REF: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-docker.html

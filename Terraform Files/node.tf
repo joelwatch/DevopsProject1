@@ -75,32 +75,29 @@ resource "aws_security_group" "my_security_group2" {
 # Note: i. First create a pem-key manually from the AWS console
 #      ii. Copy it in the same directory as your terraform code
 resource "aws_instance" "my_ec2_instance2" {
-  ami                    = "ami-0cf10cdf9fcd62d37"
+  ami                    = "ami-00cda30cf72311684"
   instance_type          = "t2.medium" # K8s requires min 2CPU & 4G RAM
   vpc_security_group_ids = [aws_security_group.my_security_group2.id]
   key_name               = "my_key" # paste your key-name here, do not use extension '.pem'
 
-  # Consider EBS volume 30GB
-  root_block_device {
-    volume_size = 30    # Volume size 30 GB
-    volume_type = "gp2" # General Purpose SSD
-  }
 
   tags = {
     Name = "NODE-SERVER"
   }
 
   # STEP3: USING REMOTE-EXEC PROVISIONER TO INSTALL TOOLS
+
+  connection {
+    type        = "ssh"
+    private_key = file("./my_key.pem") # replace with your key-name 
+    user        = "ec2-user"
+    host        = self.public_ip
+  }
   provisioner "remote-exec" {
     # ESTABLISHING SSH CONNECTION WITH EC2
-    connection {
-      type        = "ssh"
-      private_key = file("./my_key.pem") # replace with your key-name 
-      user        = "ec2-user"
-      host        = self.public_ip
-    }
 
-      inline = [
+
+    inline = [
       "sleep 200",
 
       # Install Docker
@@ -110,7 +107,7 @@ resource "aws_instance" "my_ec2_instance2" {
       "sudo systemctl start docker",
       "sudo systemctl enable docker",
       "sudo chmod 777 /var/run/docker.sock",
-      
+
       # Install K8s
       # REF: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/
       "sudo setenforce 0",
@@ -133,9 +130,9 @@ resource "aws_instance" "my_ec2_instance2" {
       "kubectl apply -f https://docs.projectcalico.org/v3.18/manifests/calico.yaml",
       "kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.27.0/manifests/tigera-operator.yaml",
       "kubectl taint nodes --all node-role.kubernetes.io/control-plane-",
-      ]
-    }
-  
+    ]
+  }
+
 }
 
 # STEP3: OUTPUT PUBLIC IP OF EC2 INSTANCE
